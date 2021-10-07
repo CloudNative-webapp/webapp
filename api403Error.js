@@ -1,15 +1,15 @@
 const httpStatusCodes = require('./httpStatusCodes')
 const BaseError = require('./BaseError')
 
-class Api400Error extends BaseError {
+class Api403Error extends BaseError {
     constructor(
         name,
-        statusCode = httpStatusCodes.BAD_REQUEST,
-        description = 'Bad Request.',
+        statusCode = httpStatusCodes.ALREADY_EXISTS,
+        description = 'Already Exists',
         isOperational = true
     ) {
         super(name, statusCode, isOperational, description)
     }
 }
 
-module.exports = Api400Error
+module.exports = Api403Error
