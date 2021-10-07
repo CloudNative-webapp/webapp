@@ -41,13 +41,50 @@ Created an node application to perform CRU operations using http request
 
 * **test/task.js** :test/api.test.js: Contains unit test
 
-## Teach Stack
+## Tech Stack
 
 NodeJs
 
 ExpressJs Framework
 
 PostgreSQL
+
+## Installation
+
+
+
+1. Clone the repo
+
+```git
+
+$ git clone git@github.com:snehalchavann/webapp.git
+
+2. Install NPM packages
+
+```
+
+cd webapp/
+
+$ npm install
+
+```
+
+3. Run below command to run application
+
+```
+
+$ nodemon app.js
+
+```
+
+4. Run test
+
+```
+
+$ npm test
+
+```
+
 
 
 
