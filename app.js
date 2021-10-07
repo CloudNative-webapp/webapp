@@ -42,7 +42,9 @@ app.get('/users', (req, res, next) => {
     const [username, password] = credentials.split(':');
 
     try {
-        if (validatePassword(username, password)) {
+        const ans = validatePassword(username, password);
+        console.log("ans"+ ans);
+        if (ans) {
             const values = [username]
             client.query(`SELECT * FROM public.user WHERE username = $1`, values, (err, result) => {
                 if (err) {
@@ -56,11 +58,11 @@ app.get('/users', (req, res, next) => {
                 res.status(200).json(result.rows)
             });
         } else {
-            res.status(401).send('User is')
+            res.status(401).send({error: 'Authentication Failed'})
             throw new Api401Error('Authentication Failed')
         }
     } catch (error) {
-
+        return res.status(401).send({error: 'Authentication Failed'});
     }
 
 
@@ -179,3 +181,5 @@ app.put('/users/updateUser', (req, res) => {
 
     client.end;
 })
+
+module.exports = app;
