@@ -5,7 +5,7 @@ create table user(
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     account_created timestamp with time zone,
-    account_updates timestamp with time zone,
+    account_updated timestamp with time zone,
     PRIMARY KEY (user_uid)
 );
 

@@ -6,11 +6,14 @@
     "test": "mocha"
   },
   "dependencies": {
+    "aws-sdk": "^2.1017.0",
     "bcrypt": "^5.0.1",
     "body-parser": "^1.13.2",
     "chai-http": "^4.3.0",
+    "dotenv": "^10.0.0",
     "express": "^4.13.1",
     "express-joi-validation": "^5.0.0",
+    "jimp": "^0.16.1",
     "joi": "^17.4.2",
     "pg": "^8.7.1"
   },
