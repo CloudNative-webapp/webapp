@@ -3,7 +3,7 @@ const client = require('./connection.js')
 
 // query database for user's password
 async function validatePassword(username, password) {
-        var statement = "SELECT password FROM public.user where username = $1";
+        var statement = "SELECT password FROM custuser where username = $1";
         var values = [username];
         try{
              const res = await client.query(statement, values)
@@ -19,7 +19,13 @@ async function validatePassword(username, password) {
              }
              var hash = res.rows[0].password;
             
-            return await bcrypt.compare(password, hash)
+            bcrypt.compare(password, hash).then(test=>{
+                if(test){
+                    return true;
+                }else{
+                    return false;
+                }
+            })
     }catch(err){
         console.log(err)
     }
