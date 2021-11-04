@@ -13,6 +13,7 @@ var uuid = require('uuid');
 const {uploadFile} = require('./s3')
 const AWS = require('aws-sdk');
 const Jimp = require("jimp");
+const { emailIsValid } = require('./helperFunctions');
 const s3 = new AWS.S3(
     region = 'us-east-1'
 );
@@ -44,9 +45,9 @@ const { env } = require('process');
 app.use(bodyParser.json());
 
 
-function emailIsValid(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-}
+// function emailIsValid(email) {
+//     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+// }
 
 
 //get all users
