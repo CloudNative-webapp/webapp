@@ -11,7 +11,6 @@ const validatePassword = require('./validatePassword')
 const fs = require("fs");
 var uuid = require('uuid');
 const {uploadFile} = require('./s3')
-// const fs = require("fs");
 const AWS = require('aws-sdk');
 const Jimp = require("jimp");
 const s3 = new AWS.S3(
@@ -31,10 +30,8 @@ app.listen(5000, () => {
 client.connect(function(err) {
     if (err) throw err;
     client.query('create table custuser(user_uid UUID DEFAULT uuid_generate_v4(),username VARCHAR(100) NOT NULL,password VARCHAR(100) NOT NULL,first_name VARCHAR(50) NOT NULL,last_name VARCHAR(50) NOT NULL,account_created timestamp with time zone,account_updated timestamp with time zone,PRIMARY KEY (user_uid));', function(error, result, fields) {
-        console.log("hi"+result);
     });
     client.query('create table usermetadata(file_name VARCHAR(200) NOT NULL,id UUID,url VARCHAR(200) NOT NULL, upload_date DATE NOT NULL, user_id UUID REFERENCES custuser(user_uid),keypath VARCHAR(100));', function(error, ans, fields) {
-        console.log("second table"+ans);
     });
     client.end;
 });
@@ -258,6 +255,8 @@ app.get('/v1/user/self/pic',async (req, res) => {
         if(err){
             console.log('err in get profile',err);
             res.status(400);
+        }else if(result.rowCount < 1){
+            res.status(404);
         }else{
             console.log('success');
             res.status(200).json(result.rows);
@@ -279,6 +278,9 @@ app.delete('/v1/user/self/pic', async (req, res) => {
     const val = [ans.rows[0].user_uid]
     const result = await client.query(kquery,val);
     const kname = result.rows[0].keypath;
+    if(kname.rowCount < 1){
+        res.status(404);
+    }
 
     console.log('uid ',ans.rows[0].user_uid);
     const deleteParam = {
@@ -288,6 +290,7 @@ app.delete('/v1/user/self/pic', async (req, res) => {
     
     s3.deleteObject(deleteParam, async function(err, data) {
         if (err) console.log(err, err.stack);
+        
         const rec = await client.query(delrecord,val);
        console.log('in del object',data);
         res.sendStatus(204);

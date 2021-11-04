@@ -15,7 +15,6 @@ async function validatePassword(username, password) {
                 }
              }catch(err){
                  return false;
-                 console.log("error")
              }
              var hash = res.rows[0].password;
             
