@@ -32,11 +32,12 @@ jobs:
       run: |
         sudo apt-get update && sudo apt-get install -y wget zip unzip jq
 
-    - name: Install awscli
-      run: |
-        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-        unzip awscliv2.zip
-        sudo ./aws/install
+    # - name: Install awscli
+    #   run: |
+        
+    #     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    #     unzip awscliv2.zip
+    #     sudo ./aws/install
 
     - name: Built Deployment Artifacts
       run: |
