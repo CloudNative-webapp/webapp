@@ -43,16 +43,10 @@ jobs:
       run: |
       
         mkdir codedeploy_artifact
-        zip -r ${{ env.ARTIFACT_NAME }} webapp codedeploy/*.sh appspec.yml --exclude webapp/.env
+        zip -r build_artifact .
         pwd
-        ls -al
-        mv ${{ env.ARTIFACT_NAME }} codedeploy_artifact
+        mv build_artifact.zip codedeploy_artifact
         cd codedeploy_artifact
-        pwd
-        ls -al
-        cd ..
-        pwd
-        ls -al
 
     - name: Configuring AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -63,18 +57,19 @@ jobs:
 
     - name: Upload Artifact Zip to S3
       run: |
-        aws s3 sync ./codedeploy_artifact s3://${{ secrets.CODEDEPLOY_BUCKET }}
+        aws s3 sync ./codedeploy_artifact s3://${{secrets.CODEDEPLOY_BUCKET}}
+        echo ${{secrets.CODEDEPLOY_BUCKET}}
 
     - name: Make CodeDeploy API call
       run: |
-        echo $(aws deploy create-deployment \
-        --application-name ${{ env.CODEDEPLOY_APPLICATION_NAME }} \
-        --deployment-config-name CodeDeployDefault.AllAtOnce \
-        --deployment-group-name ${{ env.CODEDEPLOY_GROUP_NAME }} \
-        --s3-location bucket=${{ secrets.CODEDEPLOY_BUCKET }},bundleType=zip,key=${{ env.ARTIFACT_NAME }} \
-        --region ${{ env.AWS_REGION }} \
-        --output json) > deployment_id.txt
-        ls -al
-        deployId=$(jq --raw-output '.deploymentId' deployment_id.txt)
-        aws deploy wait deployment-successful --deployment-id $deployId
+       output=$(aws deploy create-deployment \
+          --application-name csye6225-webapp \
+          --deployment-config-name CodeDeployDefault.AllAtOnce \
+          --deployment-group-name csye6225-webapp-deployment \
+          --description "CSYE6255 - CodeDeploy" \
+          --s3-location bucket=${{secrets.CODEDEPLOY_BUCKET}},key=build_artifact.zip,bundleType=zip \
+          --region ${{secrets.AWS_REGION}} \
+          --output json)
+          depId=$(echo $output | jq -r '.deploymentId')
+          aws deploy wait deployment-successful --deployment-id $depId
         
