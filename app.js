@@ -3,10 +3,10 @@ const express = require('express');
 const multer = require('multer');
 const upload = multer({dest:'uploads/'})
 const app = express();
-const Api404Error = require('./api404Error')
-const Api401Error = require('./api401Error')
-const Api400Error = require('./api400Error')
-const Api403Error = require('./api403Error')
+// const Api404Error = require('./api404Error')
+// const Api401Error = require('./api401Error')
+// const Api400Error = require('./api400Error')
+// const Api403Error = require('./api403Error')
 const validatePassword = require('./validatePassword')
 const fs = require("fs");
 var uuid = require('uuid');
@@ -72,7 +72,7 @@ app.get('/v1/user/self', (req, res, next) => {
             });
         } else {
             res.status(401).send({error: 'Authentication Failed'})
-            throw new Api401Error('Authentication Failed')
+            // throw new Api401Error('Authentication Failed')
         }
     } catch (error) {
         return res.status(401).send({error: 'Authentication Failed'});
@@ -95,7 +95,7 @@ app.post('/v1/user', (req, res) => {
     try {
         if (!emailIsValid(userReq.username)) {
             res.status(400).send('Bad request')
-            throw new Api400Error('username not valid')
+            // throw new Api400Error('username not valid')
         } else {
 
             //generate  a salt and hash the password
@@ -109,7 +109,7 @@ app.post('/v1/user', (req, res) => {
                                 status: 400,
                                 error: "Bad Request"
                             })
-                            throw new Api400Error(`Username: ${userReq.username}`)
+                            // throw new Api400Error(`Username: ${userReq.username}`)
                         } else {
                             //omitted password field
                              const {password,...result} = ans.rows[0]
@@ -151,7 +151,7 @@ app.put('/v1/user/self', (req, res) => {
                 status: 400,
                 error: 'Bad Request'
             })
-            throw new Api400Error(`Updated field not allowed`)
+            // throw new Api400Error(`Updated field not allowed`)
         } else if (validatePassword(uname, passwd)) {
 
             bcrypt.hash(password, saltRounds, function (err, hash) {
@@ -174,7 +174,7 @@ app.put('/v1/user/self', (req, res) => {
                 status: 401,
                 error: 'User is'
             })
-            throw new Api401Error('Authentication Failed')
+            // throw new Api401Error('Authentication Failed')
         }
     } catch (error) {
         console.log(error)
