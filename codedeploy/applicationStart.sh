@@ -3,5 +3,5 @@
 cd /home/ubuntu/webapp
 pwd
 ls
-pm2 stop all
+sudo pm2 stop all
 pm2 start app.js
