@@ -24,8 +24,8 @@ const bcrypt = require('bcrypt');
 //Set a value for saltRounds
 const saltRounds = 10;
 
-app.listen(5000, () => {
-    console.log("Sever is now listening at port 5000");
+app.listen(3000, () => {
+    console.log("Sever is now listening at port 3000");
 })
 
 client.connect(function(err) {
