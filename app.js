@@ -221,7 +221,7 @@ app.post('/v1/user/self/pic', async (req, res) => {
       const folder = (userid + "/");
       //let uploaddate =String(Date.now());
         var todayDate = new Date().toISOString().slice(0, 10);
-        //var keypath = data.Key;
+        
       const params = {
         Bucket: process.env.S3_BUCKET,
         Key: (folder + fname),
