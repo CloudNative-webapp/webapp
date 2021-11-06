@@ -30,6 +30,7 @@ app.listen(3000, () => {
 
 client.connect(function(err) {
     if (err) throw err;
+    client.query('CREATE EXTENSION "uuid-ossp";');
     client.query('create table custuser(user_uid UUID DEFAULT uuid_generate_v4(),username VARCHAR(100) NOT NULL,password VARCHAR(100) NOT NULL,first_name VARCHAR(50) NOT NULL,last_name VARCHAR(50) NOT NULL,account_created timestamp with time zone,account_updated timestamp with time zone,PRIMARY KEY (user_uid));', function(error, result, fields) {
     });
     client.query('create table usermetadata(file_name VARCHAR(200) NOT NULL,id UUID,url VARCHAR(200) NOT NULL, upload_date DATE NOT NULL, user_id UUID REFERENCES custuser(user_uid),keypath VARCHAR(100));', function(error, ans, fields) {
