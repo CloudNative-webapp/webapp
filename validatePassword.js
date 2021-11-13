@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const logger = require('./config/logger.js');
 const client = require('./connection.js')
 
 // query database for user's password
@@ -27,6 +28,7 @@ async function validatePassword(username, password) {
             })
     }catch(err){
         console.log(err)
+        logger.error("error in validate password");
     }
 }
 

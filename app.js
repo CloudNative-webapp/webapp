@@ -32,12 +32,17 @@ app.listen(3000, () => {
 })
 
 client.connect(function(err) {
-    if (err) throw err;
+    if (err) {
+        logger.error("Error in connecting client");
+        throw err;
+    }
     client.query('CREATE EXTENSION "uuid-ossp";');
     client.query('create table custuser(user_uid UUID DEFAULT uuid_generate_v4(),username VARCHAR(100) NOT NULL,password VARCHAR(100) NOT NULL,first_name VARCHAR(50) NOT NULL,last_name VARCHAR(50) NOT NULL,account_created timestamp with time zone,account_updated timestamp with time zone,PRIMARY KEY (user_uid));', function(error, result, fields) {
     });
     client.query('create table usermetadata(file_name VARCHAR(200) NOT NULL,id UUID,url VARCHAR(200) NOT NULL, upload_date DATE NOT NULL, user_id UUID REFERENCES custuser(user_uid),keypath VARCHAR(100));', function(error, ans, fields) {
     });
+
+    logger.info("Client connected successfully");
     client.end;
 });
 // client.connect();
@@ -56,33 +61,43 @@ app.use(bodyParser.json());
 
 //get all users
 app.get('/v2/user/self', (req, res, next) => {
-
+    let start_api = Date.now();
+    sdc.increment('get.api.count');
     const base64Credentials = req.headers.authorization.split(' ')[1];
     const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
     const [username, password] = credentials.split(':');
 
     try {
         const ans = validatePassword(username, password);
-        console.log("ans"+ ans);
+        
         if (ans) {
             const values = [username]
+            let start_query = Date.now();
             client.query(`SELECT * FROM custuser WHERE username = $1`, values, (err, result) => {
                 if (err) {
                     console.log('Error' + error)
+                    logger.error("Error in get api query");
                 }
-                console.log('select query:' + result.rows)
+               
                 const {password,...cred} = result.rows[0]
                 res.status(200).json(cred)
+                logger.info("Get user data");
             });
+            let end_query = Date.now();
+            let query_time_completion = end_query - start_query;
+            sdc.timing('timer.query.api.get',query_time_completion);
         } else {
             res.status(401).send({error: 'Authentication Failed'})
+            logger.error("Authentication Failed in get api")
             // throw new Api401Error('Authentication Failed')
         }
     } catch (error) {
         return res.status(401).send({error: 'Authentication Failed'});
     }
 
-
+    let end_api = Date.now();
+    let time_of_completion = end_api - start_api;
+    sdc.timing('timer.api.get',time_of_completion);
 
 
     client.end;
@@ -92,7 +107,7 @@ app.get('/v2/user/self', (req, res, next) => {
 //create a new user
 app.post('/v1/user', (req, res) => {
     let start_api = Date.now();
-    sdc.increment('get.api.count');
+    sdc.increment('post.api.count');
     let d = new Date();
     const userReq = req.body;
     
@@ -113,7 +128,7 @@ app.post('/v1/user', (req, res) => {
                     const ans = await client.query(sqlString, values)
                     let end_query = Date.now();
                     let query_time_completion = end_query - start_query;
-                    sdc.timing('timer.query.api.get',query_time_completion);
+                    sdc.timing('timer.query.api.post',query_time_completion);
 
                     try {
                         if (!ans) {
@@ -140,12 +155,14 @@ app.post('/v1/user', (req, res) => {
 
     let end_api = Date.now();
     let time_of_completion = end_api - start_api;
-    sdc.timing('timer.api.get',time_of_completion);
+    sdc.timing('timer.api.post',time_of_completion);
     client.end;
 })
 
 //update details of user
 app.put('/v1/user/self', (req, res) => {
+    let start_api = Date.now();
+    sdc.increment('put.api.count');
     const base64Credentials = req.headers.authorization.split(' ')[1];
     const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
     const [uname, passwd] = credentials.split(':');
@@ -168,22 +185,28 @@ app.put('/v1/user/self', (req, res) => {
                 status: 400,
                 error: 'Bad Request'
             })
+            logger.error("Invalid put request");
             // throw new Api400Error(`Updated field not allowed`)
         } else if (validatePassword(uname, passwd)) {
 
             bcrypt.hash(password, saltRounds, function (err, hash) {
                 const values = [hash, firstname, lastname, d, uname];
+                let start_query = Date.now();
                 client.query(newquery, values, (err, result) => {
                     if (result) {
                         res.status(204).json({
                             status: 204,
                             message: "Update Successful"
                         })
+                        logger.info("User details updated")
                     } else {
                         console.log(err.message)
+                        logger.error("Query failed in put api");
                     }
                 });
-                console.log(password + ' pass and hash ' + hash);
+                let end_query = Date.now();
+                let query_time_completion = end_query - start_query;
+                sdc.timing('timer.query.api.put',query_time_completion);
             });
 
         } else {
@@ -191,41 +214,66 @@ app.put('/v1/user/self', (req, res) => {
                 status: 401,
                 error: 'User is'
             })
+            logger.error("Authentication failed in put api");
             // throw new Api401Error('Authentication Failed')
         }
     } catch (error) {
         console.log(error)
     }
-
+    let end_api = Date.now();
+    let time_of_completion = end_api - start_api;
+    sdc.timing('timer.api.put',time_of_completion);
     client.end;
 })
 
 app.post('/v1/user/self/pic', async (req, res) => {
+    let start_api = Date.now();
+    sdc.increment('post.pic.api.count');
     const value = [req.body.username]
     const id = uuid.v4();
     let sqlstr = `SELECT * FROM custuser WHERE username = $1`
-        let kquery = `SELECT keypath,user_id FROM usermetadata WHERE user_id = $1`
+    let kquery = `SELECT keypath,user_id FROM usermetadata WHERE user_id = $1`
     let delrecord = `DELETE FROM usermetadata WHERE user_id = $1;`
+
+    let start_query = Date.now();
     const ans = await client.query(sqlstr, value);
+    let end_query = Date.now();
+    let query_time_completion = end_query - start_query;
+    sdc.timing('timer.query.api.post.pic.getUser',query_time_completion);
+
     const userid = ans.rows[0].user_uid;
    const delval = [userid];
+
+   let start_query1 = Date.now();
    const del = await client.query(kquery,delval);
-        console.log('kquery ',del);
-        console.log('rowcount',del.rowCount);
-   // const delid = [del.rows[0].id]
-        //const kparam = del.rows[0].keypath;
+   let end_query1 = Date.now();
+    let query_time_completion1 = end_query1 - start_query1;
+    sdc.timing('timer.query.api.post.pic.getUser',query_time_completion1);
+        
     if(del.rowCount > 0){
      const delid = [del.rows[0].user_id]
             const kparam = del.rows[0].keypath;
+
+        let start_query2 = Date.now();
         const rec = await client.query(delrecord,delid);
+        let end_query2 = Date.now();
+        let query_time_completion2 = end_query2 - start_query2;
+        sdc.timing('timer.query.api.post.pic.deleteExisting',query_time_completion2);
+
         const deleteParam = {
             Bucket: process.env.S3_BUCKET,
             Key: kparam,
           };
 
         s3.deleteObject(deleteParam, function(err, data) {
-            if (err) console.log(err, err.stack);
-            else console.log('delete', data);
+            if (err) {
+                console.log(err, err.stack);
+                logger.error("Error in deleting existing pic")
+            }
+            else {
+                console.log('delete', data);
+                logger.info("Existing pic deleted before updating new")
+            }
             // res.status(204);
         });
     }
@@ -247,43 +295,79 @@ app.post('/v1/user/self/pic', async (req, res) => {
 
       s3.upload(params, async function(err, data) {
         if (err) {
+            logger.error("Error in uploading profile pic");
             throw err;
         }
         const values = [fname,id,data.Location,todayDate,userid,data.Key];
+
+        let start_query3 = Date.now();
         const ans = await client.query(upMeta, values);
+        let end_query3 = Date.now();
+        let query_time_completion3 = end_query3 - start_query3;
+        sdc.timing('timer.query.api.post.pic.insert.metadata',query_time_completion3);
 
         res.status(201).json(ans.rows[0]);
+        logger.info("File uploaded successfully");
         console.log(`File uploaded successfully. ${data.Location}`);
     });
+
+    let end_api = Date.now();
+    let time_of_completion = end_api - start_api;
+    sdc.timing('timer.api.post.pic',time_of_completion);
+    client.end;
     
 })
 
 app.get('/v1/user/self/pic',async (req, res) => {
+    let start_api = Date.now();
+    sdc.increment('get.pic.api.count');
+
     const base64Credentials = req.headers.authorization.split(' ')[1];
     const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
     const [username, password] = credentials.split(':');
     const value = [username];
     let sqlstr = `SELECT * FROM custuser WHERE username = $1`
+
+    let start_query1 = Date.now();
     const ans = await client.query(sqlstr,value);
+    let end_query1 = Date.now();
+    let query_time_completion1 = end_query1 - start_query1;
+    sdc.timing('timer.query.api.get.pic.getUser',query_time_completion1);
+
     const userid = ans.rows[0].user_uid;
-    console.log('userid',userid);
+    
     const val = [userid];
     let getProfileQuery = `SELECT * from usermetadata where user_id = $1`
+
+    let start_query = Date.now();
     client.query(getProfileQuery,val,(err, result) => {
         if(err){
             console.log('err in get profile',err);
             res.status(400);
+            logger.error("Error in getting pic");
         }else if(result.rowCount < 1){
             res.status(404);
+            logger.error("Error in getting pic query");
         }else{
             console.log('success');
             res.status(200).json(result.rows);
+            logger.info("Profile pic retrieved");
         }
     })
+    let end_query = Date.now();
+    let query_time_completion = end_query - start_query;
+    sdc.timing('timer.query.api.get.pic',query_time_completion);
+
+    let end_api = Date.now();
+    let time_of_completion = end_api - start_api;
+    sdc.timing('timer.api.get.pic',time_of_completion);
     
 })
 
 app.delete('/v1/user/self/pic', async (req, res) => {
+    let start_api = Date.now();
+    sdc.increment('delete.pic.api.count');
+
     const base64Credentials = req.headers.authorization.split(' ')[1];
     const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
     const [username, password] = credentials.split(':');
@@ -291,31 +375,55 @@ app.delete('/v1/user/self/pic', async (req, res) => {
     let sqlstr = `SELECT user_uid FROM custuser WHERE username = $1`
     let kquery = `SELECT keypath FROM usermetadata WHERE user_id = $1`
     let delrecord = `DELETE FROM usermetadata WHERE user_id = $1;`
+
+    let start_query2 = Date.now();
     const ans = await client.query(sqlstr,value);
+    let end_query2 = Date.now();
+    let query_time_completion2 = end_query2 - start_query2;
+    sdc.timing('timer.query.api.delete.pic.getuser',query_time_completion2);
   
     const val = [ans.rows[0].user_uid]
+
+    let start_query1 = Date.now();
     const result = await client.query(kquery,val);
+    let end_query1 = Date.now();
+    let query_time_completion1 = end_query1 - start_query1;
+    sdc.timing('timer.query.api.delete.pic.getMetadata',query_time_completion1);
+
     const kname = result.rows[0].keypath;
     if(kname.rowCount < 1){
         res.status(404);
+        logger.error("Error in metadata query in delete pic api")
     }
 
-    console.log('uid ',ans.rows[0].user_uid);
+    
     const deleteParam = {
         Bucket: process.env.S3_BUCKET,
         Key: kname,
       };
     
     s3.deleteObject(deleteParam, async function(err, data) {
-        if (err) console.log(err, err.stack);
+        if (err) {
+            console.log(err, err.stack);
+            logger.error("Error deleting profile pic");
+        }
         
+        let start_query = Date.now();
         const rec = await client.query(delrecord,val);
-       console.log('in del object',data);
+        let end_query = Date.now();
+        let query_time_completion = end_query - start_query;
+        sdc.timing('timer.query.api.delete.pic.metadata',query_time_completion);
+
         res.sendStatus(204);
+        logger.info("Profile pic deleted");
 
 
     });
-        client.end;
+
+    let end_api = Date.now();
+    let time_of_completion = end_api - start_api;
+    sdc.timing('timer.api.delete.pic',time_of_completion);
+    client.end;
 
 })
 
