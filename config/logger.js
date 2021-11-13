@@ -21,7 +21,7 @@ var options = {
 };
 
 // instantiate a new Winston Logger with the settings defined above
-var logger = new winston.Logger({
+var logger = new winston.createLogger({
     transports: [
       new winston.transports.File(options.file),
       new winston.transports.Console(options.console)
