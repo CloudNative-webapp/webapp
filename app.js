@@ -84,7 +84,7 @@ app.get('/v2/user/self', (req, res, next) => {
                 logger.info("Get user data");
             });
             let end_query = Date.now();
-            let query_time_completion = end_query - start_query;
+            var query_time_completion = end_query - start_query;
             sdc.timing('timer.query.api.get',query_time_completion);
         } else {
             res.status(401).send({error: 'Authentication Failed'})
@@ -96,7 +96,7 @@ app.get('/v2/user/self', (req, res, next) => {
     }
 
     let end_api = Date.now();
-    let time_of_completion = end_api - start_api;
+    var time_of_completion = end_api - start_api;
     sdc.timing('timer.api.get',time_of_completion);
 
 
@@ -127,7 +127,7 @@ app.post('/v1/user', (req, res) => {
                     let start_query = Date.now();
                     const ans = await client.query(sqlString, values)
                     let end_query = Date.now();
-                    let query_time_completion = end_query - start_query;
+                    var query_time_completion = end_query - start_query;
                     sdc.timing('timer.query.api.post',query_time_completion);
 
                     try {
@@ -154,7 +154,7 @@ app.post('/v1/user', (req, res) => {
     }
 
     let end_api = Date.now();
-    let time_of_completion = end_api - start_api;
+    var time_of_completion = end_api - start_api;
     sdc.timing('timer.api.post',time_of_completion);
     client.end;
 })
@@ -205,7 +205,7 @@ app.put('/v1/user/self', (req, res) => {
                     }
                 });
                 let end_query = Date.now();
-                let query_time_completion = end_query - start_query;
+                var query_time_completion = end_query - start_query;
                 sdc.timing('timer.query.api.put',query_time_completion);
             });
 
@@ -221,7 +221,7 @@ app.put('/v1/user/self', (req, res) => {
         console.log(error)
     }
     let end_api = Date.now();
-    let time_of_completion = end_api - start_api;
+    var time_of_completion = end_api - start_api;
     sdc.timing('timer.api.put',time_of_completion);
     client.end;
 })
@@ -238,7 +238,7 @@ app.post('/v1/user/self/pic', async (req, res) => {
     let start_query = Date.now();
     const ans = await client.query(sqlstr, value);
     let end_query = Date.now();
-    let query_time_completion = end_query - start_query;
+    var query_time_completion = end_query - start_query;
     sdc.timing('timer.query.api.post.pic.getUser',query_time_completion);
 
     const userid = ans.rows[0].user_uid;
@@ -247,7 +247,7 @@ app.post('/v1/user/self/pic', async (req, res) => {
    let start_query1 = Date.now();
    const del = await client.query(kquery,delval);
    let end_query1 = Date.now();
-    let query_time_completion1 = end_query1 - start_query1;
+   var query_time_completion1 = end_query1 - start_query1;
     sdc.timing('timer.query.api.post.pic.getUser',query_time_completion1);
         
     if(del.rowCount > 0){
@@ -257,9 +257,10 @@ app.post('/v1/user/self/pic', async (req, res) => {
         let start_query2 = Date.now();
         const rec = await client.query(delrecord,delid);
         let end_query2 = Date.now();
-        let query_time_completion2 = end_query2 - start_query2;
+        var query_time_completion2 = end_query2 - start_query2;
         sdc.timing('timer.query.api.post.pic.deleteExisting',query_time_completion2);
 
+        let s3_start = Date.now();
         const deleteParam = {
             Bucket: process.env.S3_BUCKET,
             Key: kparam,
@@ -276,6 +277,9 @@ app.post('/v1/user/self/pic', async (req, res) => {
             }
             // res.status(204);
         });
+        let s3_end = Date.now();
+        var s3_elapsed = s3_end - s3_start;
+        sdc.timing('s3.pic.deleteInPost',s3_elapsed);
     }
     const imgBinary = req.body.data;
     const buffer = Buffer.from(imgBinary, "base64");
@@ -287,11 +291,13 @@ app.post('/v1/user/self/pic', async (req, res) => {
       //let uploaddate =String(Date.now());
         var todayDate = new Date().toISOString().slice(0, 10);
         
+        let s3_start1 = Date.now();
       const params = {
         Bucket: process.env.S3_BUCKET,
         Key: (folder + fname),
         Body: fname,
       };
+
 
       s3.upload(params, async function(err, data) {
         if (err) {
@@ -303,16 +309,19 @@ app.post('/v1/user/self/pic', async (req, res) => {
         let start_query3 = Date.now();
         const ans = await client.query(upMeta, values);
         let end_query3 = Date.now();
-        let query_time_completion3 = end_query3 - start_query3;
+        var query_time_completion3 = end_query3 - start_query3;
         sdc.timing('timer.query.api.post.pic.insert.metadata',query_time_completion3);
 
         res.status(201).json(ans.rows[0]);
         logger.info("File uploaded successfully");
         console.log(`File uploaded successfully. ${data.Location}`);
     });
+    let s3_end1 = Date.now();
+    var s3_elapsed1 = s3_end1 - s3_start1;
+    sdc.timing('s3.pic.upload',s3_elapsed1);
 
     let end_api = Date.now();
-    let time_of_completion = end_api - start_api;
+    var time_of_completion = end_api - start_api;
     sdc.timing('timer.api.post.pic',time_of_completion);
     client.end;
     
@@ -331,7 +340,7 @@ app.get('/v1/user/self/pic',async (req, res) => {
     let start_query1 = Date.now();
     const ans = await client.query(sqlstr,value);
     let end_query1 = Date.now();
-    let query_time_completion1 = end_query1 - start_query1;
+    var query_time_completion1 = end_query1 - start_query1;
     sdc.timing('timer.query.api.get.pic.getUser',query_time_completion1);
 
     const userid = ans.rows[0].user_uid;
@@ -355,11 +364,11 @@ app.get('/v1/user/self/pic',async (req, res) => {
         }
     })
     let end_query = Date.now();
-    let query_time_completion = end_query - start_query;
+    var query_time_completion = end_query - start_query;
     sdc.timing('timer.query.api.get.pic',query_time_completion);
 
     let end_api = Date.now();
-    let time_of_completion = end_api - start_api;
+    var time_of_completion = end_api - start_api;
     sdc.timing('timer.api.get.pic',time_of_completion);
     
 })
@@ -379,7 +388,7 @@ app.delete('/v1/user/self/pic', async (req, res) => {
     let start_query2 = Date.now();
     const ans = await client.query(sqlstr,value);
     let end_query2 = Date.now();
-    let query_time_completion2 = end_query2 - start_query2;
+    var query_time_completion2 = end_query2 - start_query2;
     sdc.timing('timer.query.api.delete.pic.getuser',query_time_completion2);
   
     const val = [ans.rows[0].user_uid]
@@ -387,7 +396,7 @@ app.delete('/v1/user/self/pic', async (req, res) => {
     let start_query1 = Date.now();
     const result = await client.query(kquery,val);
     let end_query1 = Date.now();
-    let query_time_completion1 = end_query1 - start_query1;
+    var query_time_completion1 = end_query1 - start_query1;
     sdc.timing('timer.query.api.delete.pic.getMetadata',query_time_completion1);
 
     const kname = result.rows[0].keypath;
@@ -396,7 +405,7 @@ app.delete('/v1/user/self/pic', async (req, res) => {
         logger.error("Error in metadata query in delete pic api")
     }
 
-    
+    let s3_start = Date.now();
     const deleteParam = {
         Bucket: process.env.S3_BUCKET,
         Key: kname,
@@ -411,7 +420,7 @@ app.delete('/v1/user/self/pic', async (req, res) => {
         let start_query = Date.now();
         const rec = await client.query(delrecord,val);
         let end_query = Date.now();
-        let query_time_completion = end_query - start_query;
+        var query_time_completion = end_query - start_query;
         sdc.timing('timer.query.api.delete.pic.metadata',query_time_completion);
 
         res.sendStatus(204);
@@ -419,9 +428,12 @@ app.delete('/v1/user/self/pic', async (req, res) => {
 
 
     });
+    let s3_end = Date.now();
+    var s3_elapsed = s3_end - s3_start;
+    sdc.timing('s3.pic.delete',s3_elapsed);
 
     let end_api = Date.now();
-    let time_of_completion = end_api - start_api;
+    var time_of_completion = end_api - start_api;
     sdc.timing('timer.api.delete.pic',time_of_completion);
     client.end;
 
