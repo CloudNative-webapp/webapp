@@ -7,6 +7,7 @@
     "start": "node app.js"
   },
   "dependencies": {
+    "app-root-path": "^3.0.0",
     "aws-sdk": "^2.1017.0",
     "bcrypt": "^5.0.1",
     "body-parser": "^1.13.2",
@@ -18,7 +19,9 @@
     "joi": "^17.4.2",
     "multer": "^1.4.3",
     "pg": "^8.7.1",
-    "uuid": "^8.3.2"
+    "statsd-client": "^0.4.7",
+    "uuid": "^8.3.2",
+    "winston": "^3.3.3"
   },
   "devDependencies": {
     "chai": "^4.3.4",

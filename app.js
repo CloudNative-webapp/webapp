@@ -3,6 +3,9 @@ const express = require('express');
 const multer = require('multer');
 const upload = multer({dest:'uploads/'})
 const app = express();
+const logger = require('./config/logger')
+var SDC = require('statsd-client'),
+sdc = new SDC({host: 'statsd.example.com', port: 8125});
 // const Api404Error = require('./api404Error')
 // const Api401Error = require('./api401Error')
 // const Api400Error = require('./api400Error')
@@ -88,21 +91,29 @@ app.get('/v2/user/self', (req, res, next) => {
 
 //create a new user
 app.post('/v1/user', (req, res) => {
+    let start_api = Date.now();
+    sdc.increment('get.api.count');
     let d = new Date();
     const userReq = req.body;
+    
     var password = userReq.password;
     let sqlString = `INSERT INTO custuser (username, password, first_name, last_name, account_created, account_updated) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`
 
     try {
         if (!emailIsValid(userReq.username)) {
             res.status(400).send('Bad request')
+            logger.error("Invalid email");
             // throw new Api400Error('username not valid')
         } else {
 
             //generate  a salt and hash the password
             bcrypt.hash(password, saltRounds, async function (err, hash) {
                 const values = [userReq.username, hash, userReq.firstname, userReq.lastname, d, d];
+                    let start_query = Date.now();
                     const ans = await client.query(sqlString, values)
+                    let end_query = Date.now();
+                    let query_time_completion = end_query - start_query;
+                    sdc.timing('timer.query.api.get',query_time_completion);
 
                     try {
                         if (!ans) {
@@ -110,11 +121,13 @@ app.post('/v1/user', (req, res) => {
                                 status: 400,
                                 error: "Bad Request"
                             })
+                            logger.error("User not added:Invalid query")
                             // throw new Api400Error(`Username: ${userReq.username}`)
                         } else {
                             //omitted password field
                              const {password,...result} = ans.rows[0]
                             res.status(201).json(result)
+                            logger.info("New user created");
                         }
                     } catch (error) {
                         console.log(error)
@@ -125,6 +138,9 @@ app.post('/v1/user', (req, res) => {
         console.log(error)
     }
 
+    let end_api = Date.now();
+    let time_of_completion = end_api - start_api;
+    sdc.timing('timer.api.get',time_of_completion);
     client.end;
 })
 
