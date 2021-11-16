@@ -6,6 +6,7 @@ const app = express();
 const logger = require('./config/logger')
 var SDC = require('statsd-client'),
 sdc = new SDC({host: 'localhost', port: 8125});
+const router = express.Router();
 // const Api404Error = require('./api404Error')
 // const Api401Error = require('./api401Error')
 // const Api400Error = require('./api400Error')
@@ -58,6 +59,9 @@ app.use(bodyParser.json());
 //     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 // }
 
+router.get('/healthstatus', (req, res) => {
+    res.status(200).send('Ok');
+  });
 
 //get all users
 app.get('/v2/user/self', (req, res, next) => {
@@ -438,5 +442,7 @@ app.delete('/v1/user/self/pic', async (req, res) => {
     client.end;
 
 })
+
+
 
 module.exports = app; 
