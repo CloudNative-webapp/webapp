@@ -59,7 +59,7 @@ app.use(bodyParser.json());
 //     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 // }
 
-router.get('/healthstatus', (req, res) => {
+app.get('/healthstatus', (req, res) => {
     res.status(200).send('Ok');
   });
 
