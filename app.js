@@ -158,10 +158,22 @@ app.post('/v1/user', (req, res) => {
                             //omitted password field
                             // Create publish parameters
                             const token = generateAccessToken(userReq.username);
-                            const dbdata = {username:userReq.username, token}
+                            // const dbdata = {username:userReq.username, token}
+                            const current = Math.floor(Date.now() / 1000)
+                            let ttl = 60 * 5
+                            const expiresIn = ttl + current
+                            var param = {
+                                TableName:"dynamodb-table",
+                                Item:{
+                                    username: userReq.username,
+                                    token: token,
+                                    ttl: expiresIn,
+                                    time_created: new Date().getTime(),
+                                }
+                            };
                             logger.info('before dynamodb in post')
                             logger.info({username:userReq.username})
-                            DynamoDB.put(dbdata, function (error, data) {
+                            DynamoDB.put(param, function (error, data) {
                                 if (error){
                                     console.log("Error in putting item in DynamoDB ", error);
                                     logger.error('error in dynamo put')
