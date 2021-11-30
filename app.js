@@ -33,6 +33,7 @@ const generateAccessToken = (username) => {
     let SHA= crypt.createHash('sha256');
     SHA.update(username);
     let HASH = SHA.digest('hex');
+    logger.info({'in_token_creation':HASH})
     return HASH;
 }
 
@@ -159,6 +160,7 @@ app.post('/v1/user', (req, res) => {
                             const token = generateAccessToken(userReq.username);
                             const dbdata = {username:userReq.username, token}
                             logger.info('before dynamodb in post')
+                            logger.info({username:userReq.username})
                             DynamoDB.put(dbdata, function (error, data) {
                                 if (error){
                                     console.log("Error in putting item in DynamoDB ", error);
