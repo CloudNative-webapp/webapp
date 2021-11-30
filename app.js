@@ -8,6 +8,7 @@ var SDC = require('statsd-client'),
 sdc = new SDC({host: 'localhost', port: 8125});
 const router = express.Router();
 var crypt = require('crypto');
+const {verifyUser} = require('./Actions/verifyUser')
 
 // const Api404Error = require('./api404Error')
 // const Api401Error = require('./api401Error')
@@ -30,7 +31,7 @@ const bcrypt = require('bcrypt');
 
 const generateAccessToken = (username) => {
     let SHA= crypt.createHash('sha256');
-    SHA.update(username+token);
+    SHA.update(username);
     let HASH = SHA.digest('hex');
     return HASH;
 }
@@ -157,9 +158,11 @@ app.post('/v1/user', (req, res) => {
                             // Create publish parameters
                             const token = generateAccessToken(userReq.username);
                             const dbdata = {username:userReq.username, token}
+                            logger.info('before dynamodb in post')
                             DynamoDB.put(dbdata, function (error, data) {
                                 if (error){
                                     console.log("Error in putting item in DynamoDB ", error);
+                                    logger.error('error in dynamo put')
                                 } 
                                 else {
                                     // sendEmail(message, question, answer);
@@ -175,11 +178,11 @@ app.post('/v1/user', (req, res) => {
                                     console.log(`Message sent to the topic ${params.TopicArn}`);
                                     console.log("MessageID is " + data.MessageId);
                                     // res.status(201).send(result.toJSON());
-                                    // logger.info("Answer has been posted..!");
+                                    logger.info("in sns publish post api");
             
                                 }).catch(
                                 function(err) {
-            
+                                    logger.error('error in sns')
                                     console.error(err, err.stack);
                                     // res.status(500).send(err)
                                 }); 
@@ -202,6 +205,8 @@ app.post('/v1/user', (req, res) => {
     sdc.timing('timer.api.post',time_of_completion);
     client.end;
 })
+
+app.get('/v1/verifyUserEmail',verifyUser);
 
 //update details of user
 app.put('/v1/user/self', (req, res) => {
