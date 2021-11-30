@@ -166,10 +166,9 @@ app.post('/v1/user', (req, res) => {
                             var param = {
                                 TableName:"dynamodb-table",
                                 Item:{
-                                    username: userReq.username,
-                                    token: token,
+                                    
+                                    "one-time-token": token,
                                     ttl: expiresIn,
-                                    time_created: new Date().getTime(),
                                 }
                             };
                             logger.info('before dynamodb in post')
