@@ -7,6 +7,8 @@ const logger = require('./config/logger')
 var SDC = require('statsd-client'),
 sdc = new SDC({host: 'localhost', port: 8125});
 const router = express.Router();
+var crypt = require('crypto');
+var DynamoDB = new aws.DynamoDB.DocumentClient();
 // const Api404Error = require('./api404Error')
 // const Api401Error = require('./api401Error')
 // const Api400Error = require('./api400Error')
@@ -25,6 +27,13 @@ const s3 = new AWS.S3(
 //include bcrypt module
 const bcrypt = require('bcrypt');
 
+const generateAccessToken = (username) => {
+    let SHA= crypt.createHash('sha256');
+    SHA.update(username+token);
+    let HASH = SHA.digest('hex');
+    return HASH;
+}
+
 //Set a value for saltRounds
 const saltRounds = 10;
 
@@ -38,7 +47,7 @@ client.connect(function(err) {
         throw err;
     }
     client.query('CREATE EXTENSION "uuid-ossp";');
-    client.query('create table custuser(user_uid UUID DEFAULT uuid_generate_v4(),username VARCHAR(100) NOT NULL,password VARCHAR(100) NOT NULL,first_name VARCHAR(50) NOT NULL,last_name VARCHAR(50) NOT NULL,account_created timestamp with time zone,account_updated timestamp with time zone,PRIMARY KEY (user_uid));', function(error, result, fields) {
+    client.query('create table custuser(user_uid UUID DEFAULT uuid_generate_v4(),username VARCHAR(100) NOT NULL,password VARCHAR(100) NOT NULL,first_name VARCHAR(50) NOT NULL,last_name VARCHAR(50) NOT NULL,account_created timestamp with time zone,account_updated timestamp with time zone,verified boolean,verified_on timestamp with time zone,PRIMARY KEY (user_uid));', function(error, result, fields) {
     });
     client.query('create table usermetadata(file_name VARCHAR(200) NOT NULL,id UUID,url VARCHAR(200) NOT NULL, upload_date DATE NOT NULL, user_id UUID REFERENCES custuser(user_uid),keypath VARCHAR(100));', function(error, ans, fields) {
     });
@@ -144,6 +153,36 @@ app.post('/v1/user', (req, res) => {
                             // throw new Api400Error(`Username: ${userReq.username}`)
                         } else {
                             //omitted password field
+                            // Create publish parameters
+                            const token = generateAccessToken(userReq.username);
+                            const dbdata = {username:userReq.username, token}
+                            DynamoDB.put(dbdata, function (error, data) {
+                                if (error){
+                                    console.log("Error in putting item in DynamoDB ", error);
+                                } 
+                                else {
+                                    // sendEmail(message, question, answer);
+                                }
+                            });
+                            const params = {
+                                Message: JSON.stringify({username:userReq.username, token, messageType: "Create User", domainName: process.env.domain_name, first_name: userReq.first_name}),
+                                TopicArn: process.env.TOPIC_ARN,
+                            }
+                            let publishTextPromise = SNS.publish(params).promise();
+                            publishTextPromise.then(
+                                function(data) {
+                                    console.log(`Message sent to the topic ${params.TopicArn}`);
+                                    console.log("MessageID is " + data.MessageId);
+                                    // res.status(201).send(result.toJSON());
+                                    // logger.info("Answer has been posted..!");
+            
+                                }).catch(
+                                function(err) {
+            
+                                    console.error(err, err.stack);
+                                    // res.status(500).send(err)
+                                }); 
+
                              const {password,...result} = ans.rows[0]
                             res.status(201).json(result)
                             logger.info("New user created");
