@@ -176,7 +176,7 @@ app.post('/v1/user', (req, res) => {
                             DynamoDB.put(param, function (error, data) {
                                 if (error){
                                     console.log("Error in putting item in DynamoDB ", error);
-                                    logger.error('error in dynamo put')
+                                    logger.error({'error in dynamo put':error})
                                 } 
                                 else {
                                     // sendEmail(message, question, answer);
