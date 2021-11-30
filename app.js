@@ -166,7 +166,7 @@ app.post('/v1/user', (req, res) => {
                             var param = {
                                 TableName:"dynamodb-table",
                                 Item:{
-                                    
+                                    username:userReq.username,
                                     "one-time-token": token,
                                     ttl: expiresIn,
                                 }
