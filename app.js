@@ -19,6 +19,7 @@ const fs = require("fs");
 var uuid = require('uuid');
 const {uploadFile} = require('./s3')
 const AWS = require('aws-sdk');
+AWS.config.update({region: 'us-east-1'});
 var dynamo = new AWS.DynamoDB({ region: 'us-east-1' });
 var DynamoDB = new AWS.DynamoDB.DocumentClient({ service: dynamo });
 const Jimp = require("jimp");
@@ -178,15 +179,13 @@ app.post('/v1/user', (req, res) => {
                                     console.log("Error in putting item in DynamoDB ", error);
                                     logger.error({'error in dynamo put':error})
                                 } 
-                                else {
-                                    // sendEmail(message, question, answer);
-                                }
+                                
                             });
                             const params = {
                                 Message: JSON.stringify({username:userReq.username, token, messageType: "Create User", domainName: process.env.domain_name, first_name: userReq.first_name}),
                                 TopicArn: process.env.TOPIC_ARN,
                             }
-                            let publishTextPromise = SNS.publish(params).promise();
+                            let publishTextPromise = new AWS.SNS({apiVersion: '2010-03-31'}).publish(params).promise();
                             publishTextPromise.then(
                                 function(data) {
                                     console.log(`Message sent to the topic ${params.TopicArn}`);
@@ -196,7 +195,7 @@ app.post('/v1/user', (req, res) => {
             
                                 }).catch(
                                 function(err) {
-                                    logger.error('error in sns')
+                                    logger.error({'error in sns':err})
                                     console.error(err, err.stack);
                                     // res.status(500).send(err)
                                 }); 
