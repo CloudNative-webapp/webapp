@@ -8,7 +8,7 @@ var SDC = require('statsd-client'),
 sdc = new SDC({host: 'localhost', port: 8125});
 const router = express.Router();
 var crypt = require('crypto');
-var DynamoDB = new aws.DynamoDB.DocumentClient();
+
 // const Api404Error = require('./api404Error')
 // const Api401Error = require('./api401Error')
 // const Api400Error = require('./api400Error')
@@ -18,6 +18,7 @@ const fs = require("fs");
 var uuid = require('uuid');
 const {uploadFile} = require('./s3')
 const AWS = require('aws-sdk');
+var DynamoDB = new AWS.DynamoDB.DocumentClient();
 const Jimp = require("jimp");
 const { emailIsValid } = require('./helperFunctions');
 const s3 = new AWS.S3(
