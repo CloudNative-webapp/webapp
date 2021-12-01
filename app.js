@@ -84,6 +84,17 @@ app.get('/v2/user/self', (req, res, next) => {
     const base64Credentials = req.headers.authorization.split(' ')[1];
     const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
     const [username, password] = credentials.split(':');
+    const text1 = 'Select verified from custuser where username =$1'
+    const value1 = [username];
+    client.query(text1,value1,(error,result) => {
+        if(!result.rows[0].verified){
+            logger.error('User not verified to perform any action');
+            return res.status(400).json({
+                status: 400,
+                error: "User not verified"
+            });
+        }else{
+        
 
     try {
         const ans = validatePassword(username, password);
@@ -112,11 +123,14 @@ app.get('/v2/user/self', (req, res, next) => {
     } catch (error) {
         return res.status(401).send({error: 'Authentication Failed'});
     }
+    }
+    })
 
     let end_api = Date.now();
     var time_of_completion = end_api - start_api;
     sdc.timing('timer.api.get',time_of_completion);
-
+        
+    
 
     client.end;
 
