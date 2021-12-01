@@ -141,18 +141,21 @@ app.post('/v1/user', (req, res) => {
             const get_user_start_time = Date.now();
             const text1 = 'Select * from custuser where username =$1'
             const value1 = [userReq.username];
-            const userans = await client.query(text1, value1)
-
+            client.query(text1, value1, (error, results) => {
                 const get_user_end_time = Date.now();
                 let get_user_time_elapsed = get_user_end_time - get_user_start_time;
                 sdc.timing('query.user.get.post', get_user_time_elapsed);
-            if(!userans){
-                res.status(400).json({
-                    status: 400,
-                    error: "User already exists"
-                })
-                logger.error('user already exists')
-            }
+                if (results.rows.length) 
+                {
+                    logger.error('user already exists')
+                    return res.status(400).json({
+                        status: 400,
+                        msg: 'Email already in use'
+                    })
+                    
+                }
+            })
+            
                 
             
 
