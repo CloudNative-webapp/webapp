@@ -1,5 +1,6 @@
 const client = require('../connection.js')
 const logger = require('../config/logger')
+var aws = require("aws-sdk");
 var DynamoDB = new aws.DynamoDB.DocumentClient();
 
 const verifyUser = (req,res) =>{
