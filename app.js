@@ -407,7 +407,7 @@ app.post('/v1/user/self/pic', async (req, res) => {
 
     const text5 = 'Select verified from custuser where username =$1'
     const value5 = [username];
-    client.query(text5, value5, (error, result) => {
+    client.query(text5, value5, async (error, result) => {
         if (!result.rows[0].verified) {
             logger.error('User not verified to perform any action');
             return res.status(400).json({
@@ -521,7 +521,7 @@ app.get('/v1/user/self/pic', async (req, res) => {
 
     const text3 = 'Select verified from custuser where username =$1'
     const value3 = [username];
-    client.query(text3, value3, (error, result) => {
+    client.query(text3, value3, async (error, result) => {
         if (!result.rows[0].verified) {
             logger.error('User not verified to perform any action');
             return res.status(400).json({
@@ -582,7 +582,7 @@ app.delete('/v1/user/self/pic', async (req, res) => {
 
     const text4 = 'Select verified from custuser where username =$1'
     const value4 = [username];
-    client.query(text4, value4, (error, result) => {
+    client.query(text4, value4, async (error, result) => {
         if (!result.rows[0].verified) {
             logger.error('User not verified to perform any action');
             return res.status(400).json({
