@@ -1,4 +1,5 @@
 const client = require('./connection.js')
+const clientRead = require('./connection.js')
 const express = require('express');
 const multer = require('multer');
 const upload = multer({dest:'uploads/'})
@@ -60,6 +61,13 @@ client.connect(function(err) {
     logger.info("Client connected successfully");
     client.end;
 });
+
+clientRead.connect(function(err){
+    if(err){
+        logger.error({"Error in connecting read replica client":err});
+    }
+    logger.info("Read replica Client connected successfully");
+});
 // client.connect();
 
 const bodyParser = require("body-parser"); //To access request body as JSON
@@ -102,7 +110,7 @@ app.get('/v2/user/self', (req, res, next) => {
         if (ans) {
             const values = [username]
             let start_query = Date.now();
-            client.query(`SELECT * FROM custuser WHERE username = $1`, values, (err, result) => {
+            clientRead.query(`SELECT * FROM custuser WHERE username = $1`, values, (err, result) => {
                 if (err) {
                     console.log('Error' + error)
                     logger.error("Error in get api query");
