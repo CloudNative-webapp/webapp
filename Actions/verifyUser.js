@@ -3,7 +3,8 @@ const logger = require('../config/logger')
 
 const verifyUser = (req,res) =>{
     logger.info('in verify user api')
-    console.log('response'+res);
+    logger.info({'response':res});
+    logger.info({'request':req});
 }
 
 exports.verifyUser = verifyUser;
