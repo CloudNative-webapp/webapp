@@ -270,7 +270,7 @@ app.post('/v1/user', (req, res) => {
                                         token,
                                         messageType: "Notification",
                                         domainName: process.env.domain_name,
-                                        first_name: userReq.first_name,
+                                        first_name: userReq.firstname,
                                         verify
                                     }),
                                     TopicArn: process.env.TOPIC_ARN,
