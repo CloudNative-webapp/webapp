@@ -549,11 +549,15 @@ app.get('/v1/user/self/pic', async (req, res) => {
             clientRead.query(getProfileQuery, val, (err, result) => {
                 if (err) {
                     console.log('err in get profile', err);
-                    res.status(400);
                     logger.error("Error in getting pic");
+                    return res.status(400);
+
                 } else if (result.rowCount < 1) {
-                    res.status(404);
                     logger.error("Error in getting pic query");
+                    return res.status(400).json({
+                        err: 'Profile pic not found'
+                    });
+
                 } else {
                     console.log('success');
                     res.status(200).json(result.rows);
