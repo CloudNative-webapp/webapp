@@ -138,6 +138,23 @@ app.post('/v1/user', (req, res) => {
             logger.error("Invalid email");
             // throw new Api400Error('username not valid')
         } else {
+            const get_user_start_time = Date.now();
+            const text1 = 'Select * from users where username =$1'
+            const value1 = [userReq.username];
+            const userans = await client.query(text1, value1)
+
+                const get_user_end_time = Date.now();
+                let get_user_time_elapsed = get_user_end_time - get_user_start_time;
+                sdc.timing('query.user.get.post', get_user_time_elapsed);
+            if(!userans){
+                res.status(400).json({
+                    status: 400,
+                    error: "User already exists"
+                })
+                logger.error('user already exists')
+            }
+                
+            
 
             //generate  a salt and hash the password
             bcrypt.hash(password, saltRounds, async function (err, hash) {
