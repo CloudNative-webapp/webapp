@@ -42,5 +42,5 @@ const clientRead = new Client({
 //     }
 //   })
 
-module.exports = client
-module.exports = clientRead
+exports.client = client
+exports.clientRead = clientRead
