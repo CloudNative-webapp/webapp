@@ -171,8 +171,7 @@ app.post('/v1/user', (req, res) => {
                 }else{
                     logger.info({'result':results});
                     verify = false;
-                }
-            })   
+                 
 
             //generate  a salt and hash the password
             bcrypt.hash(password, saltRounds, async function (err, hash) {
@@ -243,6 +242,8 @@ app.post('/v1/user', (req, res) => {
                         console.log(error)
                     }
                 });
+            }
+        })  
         }
     } catch (error) {
         console.log(error)
@@ -275,6 +276,17 @@ app.put('/v1/user/self', (req, res) => {
     let d = new Date();
     
     let newquery = 'UPDATE custuser SET password = COALESCE(NULLIF($1, \'\'), password), first_name = COALESCE(NULLIF($2, \'\'), first_name), last_name = COALESCE(NULLIF($3, \'\'), last_name), account_updated = $4 WHERE username = $5'
+
+    const text1 = 'Select verified from custuser where username =$1'
+    const value1 = [username];
+    client.query(text1,value1,(error,result) => {
+        if(!result.rows[0].verified){
+            logger.error('User not verified to perform any action');
+            return res.status(400).json({
+                status: 400,
+                error: "User not verified"
+            });
+        }else{
 
     try {
         if (account_created || account_updated || username) {
@@ -317,6 +329,8 @@ app.put('/v1/user/self', (req, res) => {
     } catch (error) {
         console.log(error)
     }
+    }
+    })  
     let end_api = Date.now();
     var time_of_completion = end_api - start_api;
     sdc.timing('timer.api.put',time_of_completion);
