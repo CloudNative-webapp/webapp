@@ -408,9 +408,9 @@ app.post('/v1/user/self/pic', async (req, res) => {
     let sqlstr = `SELECT * FROM custuser WHERE username = $1`
     let kquery = `SELECT keypath,user_id FROM usermetadata WHERE user_id = $1`
     let delrecord = `DELETE FROM usermetadata WHERE user_id = $1;`
-
+    logger.info('in post picture api')
     const text5 = 'Select verified from custuser where username =$1'
-    const value5 = [username];
+    const value5 = [value];
     client.query(text5, value5, async (error, result) => {
         if (!result.rows[0].verified) {
             logger.error('User not verified to perform any action');
@@ -419,13 +419,13 @@ app.post('/v1/user/self/pic', async (req, res) => {
                 error: "User not verified"
             });
         } else {
-
+            logger.info('after user is verified in post pic')
             let start_query = Date.now();
             const ans = await client.query(sqlstr, value);
             let end_query = Date.now();
             var query_time_completion = end_query - start_query;
             sdc.timing('timer.query.api.post.pic.getUser', query_time_completion);
-
+            logger.info('query 1 executed', ans)
             const userid = ans.rows[0].user_uid;
             const delval = [userid];
 
@@ -434,7 +434,7 @@ app.post('/v1/user/self/pic', async (req, res) => {
             let end_query1 = Date.now();
             var query_time_completion1 = end_query1 - start_query1;
             sdc.timing('timer.query.api.post.pic.getUser', query_time_completion1);
-
+            logger.info('query 2 executed', del)
             if (del.rowCount > 0) {
                 const delid = [del.rows[0].user_id]
                 const kparam = del.rows[0].keypath;
