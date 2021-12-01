@@ -148,6 +148,7 @@ app.post('/v1/user', (req, res) => {
                 if (results.rows.length) 
                 {
                     logger.error('user already exists')
+                    verify = results.rows[0].verified;
                     return res.status(400).json({
                         status: 400,
                         msg: 'Email already in use'
@@ -155,7 +156,7 @@ app.post('/v1/user', (req, res) => {
                     
                 }else{
                     logger.info({'result':results});
-                    verify = results.rows[0].verified;
+                    verify = false;
                 }
             })   
 
