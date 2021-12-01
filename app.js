@@ -154,6 +154,7 @@ app.post('/v1/user', (req, res) => {
                     })
                     
                 }else{
+                    logger.info({'result':results});
                     verify = results.rows[0].verified;
                 }
             })   
