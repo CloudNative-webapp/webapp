@@ -128,7 +128,7 @@ app.post('/v1/user', (req, res) => {
     sdc.increment('post.api.count');
     let d = new Date();
     const userReq = req.body;
-    
+    let verify;
     var password = userReq.password;
     let sqlString = `INSERT INTO custuser (username, password, first_name, last_name, account_created, account_updated) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`
 
@@ -153,11 +153,10 @@ app.post('/v1/user', (req, res) => {
                         msg: 'Email already in use'
                     })
                     
+                }else{
+                    verify = results.rows[0].verified;
                 }
-            })
-            
-                
-            
+            })   
 
             //generate  a salt and hash the password
             bcrypt.hash(password, saltRounds, async function (err, hash) {
@@ -202,7 +201,7 @@ app.post('/v1/user', (req, res) => {
                                 
                             });
                             const params = {
-                                Message: JSON.stringify({username:userReq.username, token, messageType: "Create User", domainName: process.env.domain_name, first_name: userReq.first_name}),
+                                Message: JSON.stringify({username:userReq.username, token, messageType: "Create User", domainName: process.env.domain_name, first_name: userReq.first_name,verify}),
                                 TopicArn: process.env.TOPIC_ARN,
                             }
                             let publishTextPromise = new AWS.SNS({apiVersion: '2010-03-31'}).publish(params).promise();
