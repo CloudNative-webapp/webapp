@@ -410,7 +410,7 @@ app.post('/v1/user/self/pic', async (req, res) => {
     let delrecord = `DELETE FROM usermetadata WHERE user_id = $1;`
     logger.info('in post picture api')
     const text5 = 'Select verified from custuser where username =$1'
-    const value5 = [value];
+    const value5 = value;
     client.query(text5, value5, async (error, result) => {
         if (!result.rows[0].verified) {
             logger.error('User not verified to perform any action');
