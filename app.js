@@ -277,9 +277,9 @@ app.put('/v1/user/self', (req, res) => {
     
     let newquery = 'UPDATE custuser SET password = COALESCE(NULLIF($1, \'\'), password), first_name = COALESCE(NULLIF($2, \'\'), first_name), last_name = COALESCE(NULLIF($3, \'\'), last_name), account_updated = $4 WHERE username = $5'
 
-    const text1 = 'Select verified from custuser where username =$1'
-    const value1 = [username];
-    client.query(text1,value1,(error,result) => {
+    const text2 = 'Select verified from custuser where username =$1'
+    const value2 = [uname];
+    client.query(text2,value2,(error,result) => {
         if(!result.rows[0].verified){
             logger.error('User not verified to perform any action');
             return res.status(400).json({
