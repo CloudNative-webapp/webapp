@@ -1,13 +1,20 @@
-const client = require('../connection.js')
+const {
+    client,
+    clientRead
+} = require('../connection.js')
 const logger = require('../config/logger')
 var aws = require("aws-sdk");
-var dynamo = new aws.DynamoDB({ region: 'us-east-1' });
-var DynamoDB = new aws.DynamoDB.DocumentClient({ service: dynamo });
+var dynamo = new aws.DynamoDB({
+    region: 'us-east-1'
+});
+var DynamoDB = new aws.DynamoDB.DocumentClient({
+    service: dynamo
+});
 
 
-const verifyUser = (req,res) =>{
+const verifyUser = (req, res) => {
     console.log(req, res);
- 
+
     const a = req._parsedUrl.query;
     const username = a.split("=")[1].split("&")[0];
     const token = a.split("token=")[1];
@@ -20,10 +27,13 @@ const verifyUser = (req,res) =>{
     };
 
 
-    DynamoDB.get(searchParams, function(error, record){
-        if(error) {
-            logger.info({msg: "Error in DynamoDB get method ", error: error});
-            console.log("Error in DynamoDB get method ",error);
+    DynamoDB.get(searchParams, function (error, record) {
+        if (error) {
+            logger.info({
+                msg: "Error in DynamoDB get method ",
+                error: error
+            });
+            console.log("Error in DynamoDB get method ", error);
             return res.status(400).json({
                 status: 400,
                 error: error
@@ -32,22 +42,31 @@ const verifyUser = (req,res) =>{
             let isTokenValid = false;
             console.log("Checking if record already present in DB!!");
             if (record.Item == null || record.Item == undefined) {
-                logger.info({msg: "No record in Dynamo ", record: record});
+                logger.info({
+                    msg: "No record in Dynamo ",
+                    record: record
+                });
                 isTokenValid = false;
             } else {
-                if(record.Item.ttl < Math.floor(Date.now() / 1000)) {
-                    logger.info({msg: "ttl expired ", record: record});
+                if (record.Item.ttl < Math.floor(Date.now() / 1000)) {
+                    logger.info({
+                        msg: "ttl expired ",
+                        record: record
+                    });
                     isTokenValid = false;
                 } else {
-                    logger.info({msg: "ttl found ", record: record});
+                    logger.info({
+                        msg: "ttl found ",
+                        record: record
+                    });
                     isTokenValid = true;
                 }
             }
-            if(isTokenValid) {
+            if (isTokenValid) {
                 const text = 'UPDATE custuser SET verified = $1, verified_on = $2 WHERE username =$3'
                 const values = [true, new Date().toISOString(), username];
                 client.query(text, values, (error, results) => {
-                    if(error) {
+                    if (error) {
                         logger.error('Error while verifying user');
                         return res.status(400).json({
                             status: 400,
@@ -92,7 +111,7 @@ const verifyUser = (req,res) =>{
     //             description: 'User verified sucessfully'
     //         });
     //     }
-        
+
     // });
 }
 

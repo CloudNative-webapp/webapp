@@ -1,5 +1,8 @@
-const client = require('./connection.js')
-const clientRead = require('./connection.js')
+const {
+    client,
+    clientRead
+} = require('./connection.js')
+// const clientRead = require('./connection.js')
 const express = require('express');
 const multer = require('multer');
 const upload = multer({
@@ -199,6 +202,7 @@ app.post('/v1/user', (req, res) => {
                 const get_user_end_time = Date.now();
                 let get_user_time_elapsed = get_user_end_time - get_user_start_time;
                 sdc.timing('query.user.get.post', get_user_time_elapsed);
+                logger.info('result from query', results)
                 if (results.rows.length) {
                     logger.error('user already exists')
                     verify = results.rows[0].verified;
@@ -542,7 +546,7 @@ app.get('/v1/user/self/pic', async (req, res) => {
             let getProfileQuery = `SELECT * from usermetadata where user_id = $1`
 
             let start_query = Date.now();
-            client.query(getProfileQuery, val, (err, result) => {
+            clientRead.query(getProfileQuery, val, (err, result) => {
                 if (err) {
                     console.log('err in get profile', err);
                     res.status(400);
