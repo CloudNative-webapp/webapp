@@ -268,7 +268,7 @@ app.post('/v1/user', (req, res) => {
                                     Message: JSON.stringify({
                                         username: userReq.username,
                                         token,
-                                        messageType: "Create User",
+                                        messageType: "Notification",
                                         domainName: process.env.domain_name,
                                         first_name: userReq.first_name,
                                         verify
