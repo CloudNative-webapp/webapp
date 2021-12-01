@@ -139,7 +139,7 @@ app.post('/v1/user', (req, res) => {
             // throw new Api400Error('username not valid')
         } else {
             const get_user_start_time = Date.now();
-            const text1 = 'Select * from users where username =$1'
+            const text1 = 'Select * from custuser where username =$1'
             const value1 = [userReq.username];
             const userans = await client.query(text1, value1)
 
