@@ -2,6 +2,8 @@ console.log(process.env)
 const {
     Client
 } = require('pg')
+const fs = require('fs');
+const rdsCrt = fs.readFileSync('./prod_snehalchavan_me.ca-bundle');
 
 const client = new Client({
     host: process.env.DB_HOST || "localhost",
@@ -9,12 +11,10 @@ const client = new Client({
     port: process.env.PORT || 5432,
     password: process.env.DB_PASSWORD || "password",
     database: process.env.DB_NAME || "postgres",
-    // bucketname: process.env.S3_BUCKET
-    // host: "localhost",
-    // user: "newuser",
-    // port: 5432,
-    // password: "password",
-    // database: "postgres"
+    ssl: {
+        rejectUnauthorized: true,
+        ca: [rdsCrt]
+    },
 })
 
 const clientRead = new Client({
@@ -23,24 +23,12 @@ const clientRead = new Client({
     port: process.env.PORT || 5432,
     password: process.env.DB_PASSWORD || "password",
     database: process.env.DB_NAME || "postgres",
+    ssl: {
+        rejectUnauthorized: true,
+        ca: [rdsCrt]
+    },
 })
 
-// const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, process.env.DB_PASSWORD, {
-//     dialect: 'postgres',
-//     port: 5432,
-//     replication: {
-//       read: [
-//         { host: DB_HOST_REPLICA},
-//       ],
-//       write: { host: process.env.DB_HOST}
-//     },
-//     pool: {
-//         max: 5,
-//         min: 0,
-//         acquire: 3000,
-//         idle: 10000
-//     }
-//   })
 
 exports.client = client
 exports.clientRead = clientRead
