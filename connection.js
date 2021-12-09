@@ -3,7 +3,7 @@ const {
     Client
 } = require('pg')
 const fs = require('fs');
-const rdsCrt = fs.readFileSync('./prod_snehalchavan_me.ca-bundle');
+const rdsCrt = fs.readFileSync('./rds-combined-ca-bundle.pem');
 
 const client = new Client({
     host: process.env.DB_HOST || "localhost",
